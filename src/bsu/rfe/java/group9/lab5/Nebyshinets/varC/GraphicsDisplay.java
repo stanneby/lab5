@@ -9,6 +9,8 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class GraphicsDisplay extends JPanel {
@@ -20,7 +22,10 @@ public class GraphicsDisplay extends JPanel {
     private double maxX;
     private double minY;
     private double maxY;
-    private double scale;
+    Double[][] viewport = new Double[2][2];
+    List<Double[][]> history = new ArrayList<>();
+    private double scaleX;
+    private double scaleY;
     private BasicStroke graphicsStroke;
     private BasicStroke axisStroke;
     private BasicStroke markerStroke;
@@ -42,6 +47,25 @@ public class GraphicsDisplay extends JPanel {
 
     public void showGraphics(Double[][] graphicsData) {
         this.graphicsData = graphicsData;
+
+        minX = graphicsData[0][0];
+        maxX = graphicsData[graphicsData.length-1][0];
+        minY = graphicsData[0][1];
+        maxY = minY;
+        for (int i = 1; i<graphicsData.length; i++) {
+            if (graphicsData[i][1]<minY) {
+                minY = graphicsData[i][1];
+            }
+            if (graphicsData[i][1]>maxY) {
+                maxY = graphicsData[i][1];
+            }
+        }
+
+        viewport[0][0] = minX;
+        viewport[0][1] = maxX;
+        viewport[1][0] = minY;
+        viewport[1][1] = maxY;
+
         repaint();
     }
 
@@ -61,33 +85,10 @@ public class GraphicsDisplay extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (graphicsData==null || graphicsData.length==0) return;
-        minX = graphicsData[0][0];
-        maxX = graphicsData[graphicsData.length-1][0];
-        minY = graphicsData[0][1];
-        maxY = minY;
-        for (int i = 1; i<graphicsData.length; i++) {
-            if (graphicsData[i][1]<minY) {
-                minY = graphicsData[i][1];
-            }
-            if (graphicsData[i][1]>maxY) {
-                maxY = graphicsData[i][1];
-            }
-        }
-        double scaleX = getSize().getWidth() / (maxX - minX);
-        double scaleY = getSize().getHeight() / (maxY - minY);
-        scale = Math.min(scaleX, scaleY);
-        if (scale==scaleX) {
-            double yIncrement = (getSize().getHeight()/scale - (maxY -
-                    minY))/2;
-            maxY += yIncrement;
-            minY -= yIncrement;
-        }
-        if (scale==scaleY) {
-            double xIncrement = (getSize().getWidth()/scale - (maxX -
-                    minX))/2;
-            maxX += xIncrement;
-            minX -= xIncrement;
-        }
+
+        this.scaleX = getSize().getWidth() / (viewport[0][1] - viewport[0][0]);
+        this.scaleY = getSize().getHeight() / (viewport[1][1] - viewport[1][0]);
+
         Graphics2D canvas = (Graphics2D) g;
         Stroke oldStroke = canvas.getStroke();
         Color oldColor = canvas.getColor();
@@ -200,7 +201,7 @@ public class GraphicsDisplay extends JPanel {
     protected Point2D.Double xyToPoint(double x, double y) {
         double deltaX = x - minX;
         double deltaY = maxY - y;
-        return new Point2D.Double(deltaX*scale, deltaY*scale);
+        return new Point2D.Double(deltaX*scaleX, deltaY*scaleY);
     }
 
     protected Point2D.Double shiftPoint(Point2D.Double src, double deltaX,
