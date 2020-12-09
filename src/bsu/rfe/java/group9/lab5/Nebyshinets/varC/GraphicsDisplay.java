@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 
 public class GraphicsDisplay extends JPanel {
     private Double[][] graphicsData;
+    private int selectedMarker = -1;
+    private Point2D.Double selectedMarkerPoint;
     private boolean showAxis = true;
     private boolean showMarkers = true;
     private boolean showTicks = true;
@@ -105,6 +107,7 @@ public class GraphicsDisplay extends JPanel {
         paintGraphics(canvas);
         if (showMarkers) paintMarkers(canvas);
         if (this.scaleMode) paintSelection(canvas);
+        if (GraphicsDisplay.this.selectedMarker >= 0) paintValueLabel(canvas);
         canvas.setFont(oldFont);
         canvas.setPaint(oldPaint);
         canvas.setColor(oldColor);
@@ -147,6 +150,12 @@ public class GraphicsDisplay extends JPanel {
         canvas.setStroke(this.selectionStroke);
         canvas.setColor(Color.BLACK);
         canvas.draw(this.selectionRect);
+    }
+
+    private void paintValueLabel(Graphics2D canvas) {
+
+        canvas.drawString(String.valueOf(graphicsData[selectedMarker][1]),
+                (float)selectedMarkerPoint.getX() + 15, (float)selectedMarkerPoint.getY() + 10);
     }
 
     protected void paintAxis(Graphics2D canvas) {
@@ -310,11 +319,32 @@ public class GraphicsDisplay extends JPanel {
         }
     }
 
+    protected int findSelectedPoint(int x, int y) {
+        if (this.graphicsData == null) {
+            return -1;
+        } else {
+            int pos = 0;
+            for(; pos < graphicsData.length; ++pos) {
+                Double[] point = graphicsData[pos];
+                java.awt.geom.Point2D.Double screenPoint = this.xyToPoint(point[0], point[1]);
+                double distance = (screenPoint.getX() - (double)x) * (screenPoint.getX() - (double)x) + (screenPoint.getY() - (double)y) * (screenPoint.getY() - (double)y);
+                if (distance < 100.0D) {
+                    return pos;
+                }
+            }
+
+            return -1;
+        }
+    }
+
     public class MouseMotionHandler implements MouseMotionListener {
         public MouseMotionHandler() {
         }
 
         public void mouseMoved(MouseEvent ev) {
+            GraphicsDisplay.this.selectedMarkerPoint = new Point2D.Double(ev.getX(), ev.getY());
+            GraphicsDisplay.this.selectedMarker = GraphicsDisplay.this.findSelectedPoint(ev.getX(), ev.getY());
+            GraphicsDisplay.this.repaint();
         }
 
         public void mouseDragged(MouseEvent ev) {
