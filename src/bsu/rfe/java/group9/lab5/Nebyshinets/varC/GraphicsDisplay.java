@@ -153,7 +153,6 @@ public class GraphicsDisplay extends JPanel {
     }
 
     private void paintValueLabel(Graphics2D canvas) {
-
         canvas.drawString(String.valueOf(graphicsData[selectedMarker][1]),
                 (float)selectedMarkerPoint.getX() + 15, (float)selectedMarkerPoint.getY() + 10);
     }
@@ -297,24 +296,30 @@ public class GraphicsDisplay extends JPanel {
 
         public void mousePressed(MouseEvent ev) {
             if (ev.getButton() == 1) {
-                GraphicsDisplay.this.originalPoint = GraphicsDisplay.this.pointToXY(ev.getX(), ev.getY());
+                if(selectedMarker < 0) {
+                    GraphicsDisplay.this.originalPoint = GraphicsDisplay.this.pointToXY(ev.getX(), ev.getY());
 
-                GraphicsDisplay.this.scaleMode = true;
-                GraphicsDisplay.this.setCursor(Cursor.getPredefinedCursor(5));
-                GraphicsDisplay.this.selectionRect.setFrame((double) ev.getX(), (double) ev.getY(), 1.0D, 1.0D);
+                    GraphicsDisplay.this.scaleMode = true;
+                    GraphicsDisplay.this.setCursor(Cursor.getPredefinedCursor(5));
+                    GraphicsDisplay.this.selectionRect.setFrame((double) ev.getX(), (double) ev.getY(), 1.0D, 1.0D);
+                }
             }
         }
 
         public void mouseReleased(MouseEvent ev) {
             if (ev.getButton() == 1) {
-                GraphicsDisplay.this.setCursor(Cursor.getPredefinedCursor(0));
+                if(selectedMarker < 0) {
+                    GraphicsDisplay.this.setCursor(Cursor.getPredefinedCursor(0));
 
-                GraphicsDisplay.this.scaleMode = false;
-                history.add(viewport);
-                double[] finalPoint = GraphicsDisplay.this.pointToXY(ev.getX(), ev.getY());
-                GraphicsDisplay.this.viewport = new Double[2][2];
-                GraphicsDisplay.this.zoomToRegion(GraphicsDisplay.this.originalPoint[0], GraphicsDisplay.this.originalPoint[1], finalPoint[0], finalPoint[1]);
-                GraphicsDisplay.this.repaint();
+                    GraphicsDisplay.this.scaleMode = false;
+                    history.add(viewport);
+                    double[] finalPoint = GraphicsDisplay.this.pointToXY(ev.getX(), ev.getY());
+                    GraphicsDisplay.this.viewport = new Double[2][2];
+                    GraphicsDisplay.this.zoomToRegion(GraphicsDisplay.this.originalPoint[0], GraphicsDisplay.this.originalPoint[1], finalPoint[0], finalPoint[1]);
+                    GraphicsDisplay.this.repaint();
+                } else {
+                    GraphicsDisplay.this.repaint();
+                }
             }
         }
     }
@@ -348,17 +353,22 @@ public class GraphicsDisplay extends JPanel {
         }
 
         public void mouseDragged(MouseEvent ev) {
-            double width = (double)ev.getX() - GraphicsDisplay.this.selectionRect.getX();
-            if (width < 5.0D) {
-                width = 5.0D;
+            if(selectedMarker >= 0){
+                double[] pointOfTheFunction = pointToXY(ev.getX(), ev.getY());
+                graphicsData[selectedMarker][0] = pointOfTheFunction[0];
+                graphicsData[selectedMarker][1] = pointOfTheFunction[1];
+                GraphicsDisplay.this.selectedMarkerPoint = new Point2D.Double(ev.getX(), ev.getY());
+            } else {
+                double width = (double) ev.getX() - GraphicsDisplay.this.selectionRect.getX();
+                if (width < 5.0D) {
+                    width = 5.0D;
+                }
+                double height = (double) ev.getY() - GraphicsDisplay.this.selectionRect.getY();
+                if (height < 5.0D) {
+                    height = 5.0D;
+                }
+                GraphicsDisplay.this.selectionRect.setFrame(GraphicsDisplay.this.selectionRect.getX(), GraphicsDisplay.this.selectionRect.getY(), width, height);
             }
-
-            double height = (double)ev.getY() - GraphicsDisplay.this.selectionRect.getY();
-            if (height < 5.0D) {
-                height = 5.0D;
-            }
-
-            GraphicsDisplay.this.selectionRect.setFrame(GraphicsDisplay.this.selectionRect.getX(), GraphicsDisplay.this.selectionRect.getY(), width, height);
             GraphicsDisplay.this.repaint();
         }
     }
