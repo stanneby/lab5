@@ -6,6 +6,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JPanel;
@@ -19,6 +21,8 @@ public class GraphicsDisplay extends JPanel {
     private boolean showMarkers = true;
     private boolean showTicks = true;
     private boolean scaleMode = false;
+    private boolean lockXChange = true;
+    private boolean lockYChange = false;
     private double minX;
     private double maxX;
     private double minY;
@@ -33,6 +37,7 @@ public class GraphicsDisplay extends JPanel {
     private BasicStroke ticksStroke;
     private BasicStroke selectionStroke;
     private Font axisFont;
+    private static DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance();
     private java.awt.geom.Rectangle2D.Double selectionRect = new java.awt.geom.Rectangle2D.Double();
     private double[] originalPoint = new double[2];
 
@@ -49,6 +54,7 @@ public class GraphicsDisplay extends JPanel {
         selectionStroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER, 10.0f, null, 0.0f);
         axisFont = new Font("Serif", Font.BOLD, 36);
+        formatter.setMaximumFractionDigits(5);
         this.addMouseListener(new GraphicsDisplay.MouseHandler());
         this.addMouseMotionListener(new GraphicsDisplay.MouseMotionHandler());
     }
@@ -88,6 +94,12 @@ public class GraphicsDisplay extends JPanel {
     public void setShowTicks(boolean showTicks) {
         this.showTicks = showTicks;
         repaint();
+    }
+    public void setLockXChange(boolean lockXChange){
+        this.lockXChange = lockXChange;
+    }
+    public void setLockYChange(boolean lockYChange){
+        this.lockYChange = lockYChange;
     }
 
     public void paintComponent(Graphics g) {
@@ -153,7 +165,10 @@ public class GraphicsDisplay extends JPanel {
     }
 
     private void paintValueLabel(Graphics2D canvas) {
-        canvas.drawString(String.valueOf(graphicsData[selectedMarker][1]),
+
+        canvas.drawString(
+                "x: " + formatter.format(graphicsData[selectedMarker][0]) +
+                        ", y: " + formatter.format(graphicsData[selectedMarker][1]),
                 (float)selectedMarkerPoint.getX() + 15, (float)selectedMarkerPoint.getY() + 10);
     }
 
@@ -355,8 +370,12 @@ public class GraphicsDisplay extends JPanel {
         public void mouseDragged(MouseEvent ev) {
             if(selectedMarker >= 0){
                 double[] pointOfTheFunction = pointToXY(ev.getX(), ev.getY());
-                graphicsData[selectedMarker][0] = pointOfTheFunction[0];
-                graphicsData[selectedMarker][1] = pointOfTheFunction[1];
+                if(!lockXChange) {
+                    graphicsData[selectedMarker][0] = pointOfTheFunction[0];
+                }
+                if(!lockYChange) {
+                    graphicsData[selectedMarker][1] = pointOfTheFunction[1];
+                }
                 GraphicsDisplay.this.selectedMarkerPoint = new Point2D.Double(ev.getX(), ev.getY());
             } else {
                 double width = (double) ev.getX() - GraphicsDisplay.this.selectionRect.getX();
