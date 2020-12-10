@@ -3,11 +3,7 @@ package bsu.rfe.java.group9.lab5.Nebyshinets.varC;
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
@@ -54,6 +50,18 @@ public class MainFrame extends JFrame {
             }
         };
         fileMenu.add(openGraphicsAction);
+
+        Action saveGraphicsAction = new AbstractAction("Сохранить файл с графиком") {
+            public void actionPerformed(ActionEvent event) {
+                if (fileChooser==null) {
+                    fileChooser = new JFileChooser();
+                    fileChooser.setCurrentDirectory(new File("."));
+                }
+                if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION)
+                    saveGraphics(fileChooser.getSelectedFile());
+            }
+        };
+        fileMenu.add(saveGraphicsAction);
 
         JMenu graphicsMenu = new JMenu("График");
         menuBar.add(graphicsMenu);
@@ -135,6 +143,24 @@ public class MainFrame extends JFrame {
                             "координат точек из файла", "Ошибка загрузки данных",
                     JOptionPane.WARNING_MESSAGE);
             return;
+        }
+    }
+
+    protected void saveGraphics(File selectedFile){
+        try {
+            File file = new File(selectedFile.getName());
+            file.createNewFile();
+
+            FileOutputStream fos = new FileOutputStream(selectedFile.getName(), false);
+            DataOutputStream dos = new DataOutputStream(fos);
+
+            for (Double[] d : display.getData()) {
+                dos.writeDouble(d[0]);
+                dos.writeDouble(d[1]);
+            }
+            dos.flush();
+        }catch(Exception e) {
+            e.printStackTrace();
         }
     }
 

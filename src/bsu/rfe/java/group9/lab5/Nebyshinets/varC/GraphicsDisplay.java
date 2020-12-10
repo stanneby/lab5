@@ -83,6 +83,10 @@ public class GraphicsDisplay extends JPanel {
         repaint();
     }
 
+    public Double[][] getData(){
+        return graphicsData;
+    }
+
     public void setShowAxis(boolean showAxis) {
         this.showAxis = showAxis;
         repaint();
