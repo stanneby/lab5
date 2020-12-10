@@ -26,6 +26,8 @@ public class MainFrame extends JFrame {
     private JFileChooser fileChooser = null;
     private JCheckBoxMenuItem showAxisMenuItem;
     private JCheckBoxMenuItem showMarkersMenuItem;
+    private JCheckBoxMenuItem setLockXChangeMenuItem;
+    private JCheckBoxMenuItem setLockYChangeMenuItem;
     private JCheckBoxMenuItem showTicksMenuItem;
     private GraphicsDisplay display = new GraphicsDisplay();
     private boolean fileLoaded = false;
@@ -82,6 +84,24 @@ public class MainFrame extends JFrame {
         showTicksMenuItem = new JCheckBoxMenuItem(showTicksAction);
         graphicsMenu.add(showTicksMenuItem);
         showTicksMenuItem.setSelected(true);
+
+        Action lockXChangeAction = new AbstractAction("Не изменять координату по оси Х") {
+            public void actionPerformed(ActionEvent event) {
+                display.setLockXChange(setLockXChangeMenuItem.isSelected());
+            }
+        };
+        setLockXChangeMenuItem = new JCheckBoxMenuItem(lockXChangeAction);
+        graphicsMenu.add(setLockXChangeMenuItem);
+        setLockXChangeMenuItem.setSelected(true);
+
+        Action lockYChangeAction = new AbstractAction("Не изменять координату по оси Y") {
+            public void actionPerformed(ActionEvent event) {
+                display.setLockYChange(setLockYChangeMenuItem.isSelected());
+            }
+        };
+        setLockYChangeMenuItem = new JCheckBoxMenuItem(lockYChangeAction);
+        graphicsMenu.add(setLockYChangeMenuItem);
+        setLockYChangeMenuItem.setSelected(false);
 
         graphicsMenu.addMenuListener(new GraphicsMenuListener());
         getContentPane().add(display, BorderLayout.CENTER);
